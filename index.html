@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0b14" />
+  <title>FUTURA SPACE — POS & Pembukuan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>" />
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+  <div id="lock-screen" class="lock-screen hidden">
+    <div class="lock-card">
+      <div class="logo-mark">🪐</div>
+      <h1>FUTURA SPACE</h1>
+      <p>Masukkan PIN kasir</p>
+      <input id="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off" />
+      <button class="btn-primary" onclick="unlock()">Buka Sistem</button>
+      <small id="pin-error" class="error"></small>
+    </div>
+  </div>
+  <div id="app" class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo-mark">🪐</div>
+        <div>
+          <strong>FUTURA SPACE</strong>
+          <span>Coffee & Space</span>
+        </div>
+      </div>
+      <nav>
+        <button data-view="dashboard" class="nav-btn active">📊 Dashboard</button>
+        <button data-view="kasir" class="nav-btn">🧾 Kasir</button>
+        <button data-view="produk" class="nav-btn">☕ Produk</button>
+        <button data-view="transaksi" class="nav-btn">🗂️ Transaksi</button>
+        <button data-view="pembukuan" class="nav-btn">📒 Pembukuan</button>
+        <button data-view="laporan" class="nav-btn">📈 Laporan</button>
+        <button data-view="pengaturan" class="nav-btn">⚙️ Pengaturan</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div id="shift-info" class="shift-info"></div>
+        <button class="nav-btn ghost" onclick="lockNow()">🔒 Kunci</button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="mobile-nav" id="mobile-nav"></div>
+          <h2 id="view-title">Dashboard</h2>
+          <p id="view-sub" class="muted">Ringkasan operasional hari ini</p>
+        </div>
+        <div class="topbar-right">
+          <div id="clock" class="clock"></div>
+          <button class="btn-ghost" onclick="exportBackup()">⬇ Backup</button>
+        </div>
+      </header>
+      <section id="view-dashboard" class="view active">
+        <div class="stat-grid">
+          <article class="stat-card gold"><span>Omzet Hari Ini</span><strong id="stat-omzet">Rp 0</strong><small id="stat-trx">0 transaksi</small></article>
+          <article class="stat-card cyan"><span>Laba Kotor Hari Ini</span><strong id="stat-laba">Rp 0</strong><small>omzet − HPP</small></article>
+          <article class="stat-card purple"><span>Pengeluaran Hari Ini</span><strong id="stat-exp">Rp 0</strong><small>biaya operasional</small></article>
+          <article class="stat-card mint"><span>Laba Bersih Hari Ini</span><strong id="stat-net">Rp 0</strong><small>laba kotor − pengeluaran</small></article>
+        </div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-h"><h3>Menu Terlaris Hari Ini</h3></div><div id="top-products" class="list"></div></div>
+          <div class="panel"><div class="panel-h"><h3>Transaksi Terakhir</h3></div><div id="recent-trx" class="list"></div></div>
+        </div>
+        <div class="panel"><div class="panel-h"><h3>Stok Menipis</h3><small class="muted">Ambang ≤ 5</small></div><div id="low-stock" class="chips"></div></div>
+      </section>
+      <section id="view-kasir" class="view">
+        <div class="kasir-layout">
+          <div class="kasir-left">
+            <div class="kasir-tools">
+              <input id="search-product" type="search" placeholder="Cari menu… (nama / SKU)" />
+              <div id="cat-filters" class="cat-filters"></div>
+            </div>
+            <div id="product-grid" class="product-grid"></div>
+          </div>
+          <aside class="cart-panel">
+            <div class="panel-h"><h3>Pesanan</h3><button class="btn-tiny" onclick="clearCart()">Kosongkan</button></div>
+            <div class="field"><label>Nama pelanggan</label><input id="cust-name" type="text" placeholder="Walk-in / meja / nama" /></div>
+            <div id="cart-items" class="cart-items"></div>
+            <div class="cart-totals">
+              <div><span>Subtotal</span><b id="cart-sub">Rp 0</b></div>
+              <div class="field-inline"><label>Diskon (Rp)</label><input id="cart-discount" type="number" min="0" value="0" oninput="renderCart()" /></div>
+              <div class="grand"><span>Total</span><b id="cart-total">Rp 0</b></div>
+            </div>
+            <button class="btn-primary wide" onclick="openCheckout()" id="btn-checkout" disabled>Bayar</button>
+          </aside>
+        </div>
+      </section>
+      <section id="view-produk" class="view">
+        <div class="panel">
+          <div class="panel-h"><h3>Daftar Produk</h3><button class="btn-primary" onclick="openProductForm()">+ Tambah Produk</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Kategori</th><th>Harga Jual</th><th>HPP</th><th>Stok</th><th>Status</th><th></th></tr></thead><tbody id="product-table"></tbody></table></div>
+        </div>
+      </section>
+      <section id="view-transaksi" class="view">
+        <div class="panel">
+          <div class="panel-h wrap"><h3>Riwayat Penjualan</h3>
+            <div class="filters">
+              <input type="date" id="trx-from" /><input type="date" id="trx-to" />
+              <select id="trx-pay"><option value="">Semua metode</option><option>Tunai</option><option>QRIS</option><option>Transfer</option><option>Kartu</option></select>
+              <button class="btn-ghost" onclick="renderTransactions()">Filter</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Waktu</th><th>No</th><th>Pelanggan</th><th>Item</th><th>Total</th><th>Metode</th><th></th></tr></thead><tbody id="trx-table"></tbody></table></div>
+        </div>
+      </section>
+      <section id="view-pembukuan" class="view">
+        <div class="stat-grid compact">
+          <article class="stat-card gold"><span>Pemasukan (periode)</span><strong id="bk-in">Rp 0</strong></article>
+          <article class="stat-card purple"><span>Pengeluaran (periode)</span><strong id="bk-out">Rp 0</strong></article>
+          <article class="stat-card mint"><span>Saldo Bersih</span><strong id="bk-net">Rp 0</strong></article>
+        </div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-h"><h3>Catat Pengeluaran</h3></div>
+            <form id="expense-form" class="form" onsubmit="addExpense(event)">
+              <div class="field"><label>Tanggal</label><input type="date" id="ex-date" required /></div>
+              <div class="field"><label>Kategori</label><select id="ex-cat" required><option>Bahan Baku</option><option>Gaji</option><option>Sewa</option><option>Listrik & Air</option><option>Peralatan</option><option>Marketing</option><option>Lainnya</option></select></div>
+              <div class="field"><label>Nominal (Rp)</label><input type="number" id="ex-amt" min="0" required /></div>
+              <div class="field"><label>Keterangan</label><input type="text" id="ex-note" placeholder="contoh: beli susu UHT 12 liter" /></div>
+              <button class="btn-primary" type="submit">Simpan Pengeluaran</button>
+            </form>
+          </div>
+          <div class="panel"><div class="panel-h wrap"><h3>Buku Pengeluaran</h3>
+            <div class="filters"><input type="date" id="ex-from" /><input type="date" id="ex-to" /><button class="btn-ghost" onclick="renderBookkeeping()">Filter</button></div>
+            </div>
+            <div id="expense-list" class="list tall"></div>
+          </div>
+        </div>
+      </section>
+      <section id="view-laporan" class="view">
+        <div class="panel"><div class="panel-h wrap"><h3>Laporan Laba Rugi</h3>
+          <div class="filters"><input type="date" id="rep-from" /><input type="date" id="rep-to" /><button class="btn-ghost" onclick="renderReport()">Hitung</button><button class="btn-primary" onclick="printReport()">🖨 Cetak</button></div>
+        </div><div id="report-body" class="report"></div></div>
+      </section>
+      <section id="view-pengaturan" class="view">
+        <div class="grid-2">
+          <div class="panel"><div class="panel-h"><h3>Profil Usaha</h3></div>
+            <form class="form" onsubmit="saveSettings(event)">
+              <div class="field"><label>Nama usaha</label><input id="set-name" type="text" /></div>
+              <div class="field"><label>Alamat</label><input id="set-addr" type="text" /></div>
+              <div class="field"><label>Telepon / WhatsApp</label><input id="set-phone" type="text" /></div>
+              <div class="field"><label>PIN kunci layar (4–6 digit, kosongkan untuk nonaktif)</label><input id="set-pin" type="password" inputmode="numeric" maxlength="6" /></div>
+              <button class="btn-primary" type="submit">Simpan Pengaturan</button>
+            </form>
+          </div>
+          <div class="panel"><div class="panel-h"><h3>Data</h3></div>
+            <p class="muted">Data tersimpan di browser ini (localStorage). Backup rutin agar tidak hilang jika cache dibersihkan.</p>
+            <div class="btn-row">
+              <button class="btn-ghost" onclick="exportBackup()">Unduh Backup JSON</button>
+              <label class="btn-ghost file-btn">Impor Backup<input type="file" accept="application/json" hidden onchange="importBackup(event)" /></label>
+              <button class="btn-danger" onclick="resetDemo()">Reset ke Data Demo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()"><div class="modal-card" id="modal-card"></div></div>
+  <div id="toast" class="toast hidden"></div>
+  <script src="js/app.js"></script>
+</body>
+</html>
